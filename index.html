@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#007bff">
+    <title>燈冠米數計算機</title>
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <!-- 建議放置 icon.png 在同目錄，作為 favicon -->
+    <link rel="icon" type="image/png" href="icon.png"> 
+    
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --bg-color: #f4f4f9;
+            --container-bg: #ffffff;
+            --text-color: #333;
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .container {
+            background-color: var(--container-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 1.6rem;
+        }
+
+        .form-group { margin-bottom: 15px; }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #444;
+            font-size: 0.95rem;
+        }
+
+        .input-group { display: flex; gap: 10px; }
+        .input-group input { flex: 2; }
+        .input-group select { flex: 1; min-width: 70px; }
+
+        input[type="number"], select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+
+        /* Radio Group */
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            padding: 5px 0;
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .radio-option input {
+            margin-right: 8px;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
+        }
+
+        /* Buttons Area */
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            color: white;
+        }
+
+        button:active { transform: scale(0.98); }
+
+        .btn-calc { background-color: var(--primary-color); font-size: 18px; }
+        .btn-clear { background-color: var(--danger-color); }
+        .btn-save { background-color: var(--warning-color); color: #333; }
+
+        /* Result Area */
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9f5ff;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #b8daff;
+        }
+        .result-value { font-size: 2.2rem; font-weight: bold; color: var(--primary-color); }
+        .result-unit { font-size: 1rem; color: #555; }
+
+        /* History Area */
+        .history-section {
+            margin-top: 30px;
+            border-top: 2px dashed #eee;
+            padding-top: 20px;
+        }
+        .history-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .history-item {
+            background: #fff;
+            border: 1px solid #eee;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .history-info { font-size: 0.85rem; color: #555; line-height: 1.4; }
+        .history-info strong { color: var(--primary-color); font-size: 1rem; }
+        .btn-delete-item {
+            background-color: #ff6b6b;
+            width: auto;
+            padding: 5px 12px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+        footer a { color: var(--primary-color); text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>燈冠米數計算機</h1>
+
+    <!-- Inputs -->
+    <div class="form-group">
+        <label>1. 材質</label>
+        <select id="material">
+            <option value="0.92">PE/LDPE (0.92)</option>
+            <option value="0.95">HDPE (0.95)</option>
+            <option value="1.24">PLA (1.24)</option>
+            <option value="1.3">生物可分解 (1.3)</option>
+            <option value="1.1">黑白膜 (1.1)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>2. 膜層類型</label>
+        <div class="radio-group">
+            <label class="radio-option">
+                <input type="radio" name="layer" value="1" checked> 單層
+            </label>
+            <label class="radio-option">
+                <input type="radio" name="layer" value="2"> 雙層
+            </label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>3. 膜厚</label>
+        <div class="input-group">
+            <input type="number" id="thickness" placeholder="厚度" step="any">
+            <select id="thicknessUnit">
+                <option value="mm">mm</option>
+                <option value="um">µm</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>4. 寬度</label>
+        <div class="input-group">
+            <input type="number" id="width" placeholder="寬度" step="any">
+            <select id="widthUnit">
+                <option value="cm">cm</option>
+                <option value="mm">mm</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>5. 重量 (kg)</label>
+        <input type="number" id="weight" placeholder="重量" step="any">
+    </div>
+
+    <!-- Buttons -->
+    <div class="btn-group">
+        <button class="btn-calc" onclick="calculate()">計算米數</button>
+        <div class="result-box" id="resultArea" style="display: none;">
+            <span class="result-value" id="resultValue">0</span> <span class="result-unit">m</span>
+        </div>
+        
+        <button class="btn-clear" onclick="clearForm()">清空計算</button>
+        <button class="btn-save" id="btnSave" onclick="saveCalculation()" style="display: none;">記憶此計算</button>
+    </div>
+
+    <!-- History -->
+    <div class="history-section" id="historySection" style="display: none;">
+        <div class="history-title">計算紀錄</div>
+        <ul class="history-list" id="historyList">
+            <!-- Items will be injected here -->
+        </ul>
+    </div>
+
+    <footer>
+        <a href="https://www.threads.com/@freddychen1225" target="_blank">Freddy</a> & Gemini共同協作
+    </footer>
+</div>
+
+<script>
+    // 頁面載入時讀取歷史紀錄
+    document.addEventListener('DOMContentLoaded', loadHistory);
+
+    let currentResult = null;
+    let currentDetails = null;
+
+    function calculate() {
+        const density = parseFloat(document.getElementById('material').value);
+        const densityText = document.getElementById('material').options[document.getElementById('material').selectedIndex].text;
+        const layerMultiplier = parseInt(document.querySelector('input[name="layer"]:checked').value);
+        const layerText = layerMultiplier === 1 ? "單層" : "雙層";
+        
+        let thickness = parseFloat(document.getElementById('thickness').value);
+        const thicknessUnit = document.getElementById('thicknessUnit').value;
+        
+        let width = parseFloat(document.getElementById('width').value);
+        const widthUnit = document.getElementById('widthUnit').value;
+        
+        const weight = parseFloat(document.getElementById('weight').value);
+
+        if (isNaN(thickness) || isNaN(width) || isNaN(weight) || thickness <= 0 || width <= 0 || weight <= 0) {
+            alert("請輸入正確的數值！");
+            return;
+        }
+
+        // 單位換算
+        let thickness_mm = (thicknessUnit === 'um') ? thickness / 1000 : thickness;
+        let width_m = 0;
+        if (widthUnit === 'cm') width_m = width / 100;
+        else width_m = width / 1000;
+
+        // 計算
+        let denominator = width_m * thickness_mm * density * layerMultiplier;
+        let length = weight / denominator;
+        const finalResult = Math.round(length * 100) / 100;
+
+        // 顯示結果
+        document.getElementById('resultValue').innerText = finalResult;
+        document.getElementById('resultArea').style.display = 'block';
+        document.getElementById('btnSave').style.display = 'block'; // 顯示記憶按鈕
+
+        // 暫存資料供記憶使用
+        currentResult = finalResult;
+        currentDetails = `材質: ${densityText.split(' ')[0]} | ${layerText}<br>
+                          規格: ${width}${widthUnit} x ${thickness}${thicknessUnit}<br>
+                          重量: ${weight}kg`;
+    }
+
+    function clearForm() {
+        document.getElementById('thickness').value = '';
+        document.getElementById('width').value = '';
+        document.getElementById('weight').value = '';
+        document.getElementById('resultArea').style.display = 'none';
+        document.getElementById('btnSave').style.display = 'none';
+        currentResult = null;
+        currentDetails = null;
+    }
+
+    function saveCalculation() {
+        if (currentResult === null) return;
+
+        const record = {
+            id: Date.now(),
+            result: currentResult,
+            details: currentDetails,
+            timestamp: new Date().toLocaleString()
+        };
+
+        // 存入 LocalStorage
+        let history = JSON.parse(localStorage.getItem('calcHistory')) || [];
+        history.unshift(record); // 加到最前面
+        localStorage.setItem('calcHistory', JSON.stringify(history));
+
+        renderHistory();
+    }
+
+    function deleteHistoryItem(id) {
+        let history = JSON.parse(localStorage.getItem('calcHistory')) || [];
+        history = history.filter(item => item.id !== id);
+        localStorage.setItem('calcHistory', JSON.stringify(history));
+        renderHistory();
+    }
+
+    function loadHistory() {
+        renderHistory();
+    }
+
+    function renderHistory() {
+        const history = JSON.parse(localStorage.getItem('calcHistory')) || [];
+        const listEl = document.getElementById('historyList');
+        const sectionEl = document.getElementById('historySection');
+
+        listEl.innerHTML = '';
+
+        if (history.length > 0) {
+            sectionEl.style.display = 'block';
+            history.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'history-item';
+                li.innerHTML = `
+                    <div class="history-info">
+                        <strong>${item.result} m</strong><br>
+                        ${item.details}
+                    </div>
+                    <button class="btn-delete-item" onclick="deleteHistoryItem(${item.id})">刪除</button>
+                `;
+                listEl.appendChild(li);
+            });
+        } else {
+            sectionEl.style.display = 'none';
+        }
+    }
+
+    // PWA Service Worker Registration
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('SW registered!', reg))
+                .catch(err => console.log('SW failed', err));
+        });
+    }
+</script>
+
+</body>
+</html>
