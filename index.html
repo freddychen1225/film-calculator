@@ -149,7 +149,6 @@
         .btn-calc { background-color: var(--primary-color); font-size: 18px; }
         .btn-clear { background-color: var(--danger-color); }
         .btn-save { background-color: var(--warning-color); color: #333; }
-        .btn-sub-calc { background-color: #28a745; margin-top: 10px; }
 
         /* Result Area */
         .result-box {
@@ -275,7 +274,21 @@
         </div>
 
         <div class="form-group">
-            <label>2. 長度 (cm)</label>
+            <label>2. 折角 (cm)</label>
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <input type="number" id="gusset1_b" placeholder="折角1" step="any">
+                    <span class="input-suffix" style="font-size: 0.8rem;">cm</span>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="gusset2_b" placeholder="折角2" step="any">
+                    <span class="input-suffix" style="font-size: 0.8rem;">cm</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>3. 長度 (cm)</label>
             <div class="input-wrapper">
                 <input type="number" id="length_b" placeholder="輸入數值" step="any">
                 <span class="input-suffix">cm</span>
@@ -283,7 +296,7 @@
         </div>
 
         <div class="form-group">
-            <label>3. 厚度 (mm)</label>
+            <label>4. 厚度 (mm)</label>
             <div class="input-wrapper">
                 <input type="number" id="thickness_b" placeholder="輸入數值" step="any">
                 <span class="input-suffix">mm</span>
@@ -291,7 +304,7 @@
         </div>
 
         <div class="form-group">
-            <label>4. 材質常用係數</label>
+            <label>5. 材質常用係數</label>
             <select id="coeff_b">
                 <option value="0.1854">LDPE (0.1854)</option>
                 <option value="0.1854">LLDPE (0.1854)</option>
@@ -322,6 +335,13 @@
             </div>
 
             <button class="btn-clear" onclick="clearFormB()">清空計算</button>
+            <button class="btn-save" id="btnSave_b" onclick="saveCalculationB()" style="display: none;">記憶此計算</button>
+        </div>
+
+        <!-- 袋數歷史紀錄 -->
+        <div class="history-section" id="historySection_b" style="display: none;">
+            <div class="history-title">袋數計算紀錄</div>
+            <ul class="history-list" id="historyList_b"></ul>
         </div>
     </div>
 
@@ -342,7 +362,11 @@
     // ==========================================
     // TAB 1: 米數計算邏輯
     // ==========================================
-    document.addEventListener('DOMContentLoaded', loadHistoryM);
+    document.addEventListener('DOMContentLoaded', () => {
+        loadHistoryM();
+        loadHistoryB(); // 同時載入袋數紀錄
+    });
+    
     let currentResultM = null;
     let currentDetailsM = null;
 
@@ -351,13 +375,8 @@
         const densityText = document.getElementById('material_m').options[document.getElementById('material_m').selectedIndex].text;
         const layerMultiplier = parseInt(document.querySelector('input[name="layer_m"]:checked').value);
         const layerText = layerMultiplier === 1 ? "單層" : "雙層";
-        
-        // 單位直接為 mm
         let thickness = parseFloat(document.getElementById('thickness_m').value);
-        
-        // 單位直接為 cm
         let width = parseFloat(document.getElementById('width_m').value);
-        
         const weight = parseFloat(document.getElementById('weight_m').value);
 
         if (isNaN(thickness) || isNaN(width) || isNaN(weight) || thickness <= 0 || width <= 0 || weight <= 0) {
@@ -365,10 +384,7 @@
             return;
         }
 
-        // 米數公式需要: 寬(m) * 厚(mm) * 密度
-        // 寬度輸入是 cm，轉為 m (除以 100)
         let width_m = width / 100;
-
         let denominator = width_m * thickness * density * layerMultiplier;
         let length = weight / denominator;
         const finalResult = Math.round(length * 100) / 100;
@@ -429,34 +445,49 @@
     // TAB 2: 袋數計算邏輯
     // ==========================================
     let bagsPerKg = 0;
+    let currentResultB = null; // 暫存記憶用
+    let currentDetailsB = null; // 暫存記憶用
 
     function calculateBags() {
-        // 輸入皆為固定單位: 寬cm, 長cm, 厚mm
         let width = parseFloat(document.getElementById('width_b').value);
+        let gusset1 = parseFloat(document.getElementById('gusset1_b').value) || 0; // 若未填寫則為0
+        let gusset2 = parseFloat(document.getElementById('gusset2_b').value) || 0; // 若未填寫則為0
         let length = parseFloat(document.getElementById('length_b').value);
         let thickness = parseFloat(document.getElementById('thickness_b').value);
         const coeff = parseFloat(document.getElementById('coeff_b').value);
+        const coeffText = document.getElementById('coeff_b').options[document.getElementById('coeff_b').selectedIndex].text;
 
         if (isNaN(width) || isNaN(length) || isNaN(thickness) || width <= 0 || length <= 0 || thickness <= 0) {
-            alert("請填寫所有規格數值！");
+            alert("請填寫所有必要規格數值 (寬、長、厚)！");
             return;
         }
 
-        // 公式: 1000 / (寬cm * 長cm * 厚mm * 係數)
-        let star = width * length * thickness * coeff;
+        // 公式修正: 1000 / [(寬 + 折角1 + 折角2) * 長 * 厚 * 係數]
+        // 單位: 寬/長/折角皆為 cm, 厚為 mm
+        let totalWidth = width + gusset1 + gusset2;
+        let star = totalWidth * length * thickness * coeff;
         let result = 1000 / star;
         
-        bagsPerKg = Math.round(result);
+        // 修改為無條件捨去 (Math.floor)
+        bagsPerKg = Math.floor(result);
 
         document.getElementById('resultValue_b').innerText = bagsPerKg;
         document.getElementById('resultArea_b').style.display = 'block';
+        document.getElementById('btnSave_b').style.display = 'block'; // 顯示記憶按鈕
         
         calculateTotalBags(); // 若已有總重，自動重算
+
+        // 準備記憶資料
+        let gussetText = (gusset1 > 0 || gusset2 > 0) ? `+折${gusset1}+折${gusset2}` : "";
+        currentResultB = bagsPerKg;
+        currentDetailsB = `材質: ${coeffText.split(' ')[0]}<br>規格: (${width}${gussetText})x${length}cm x ${thickness}mm`;
     }
 
     function calculateTotalBags() {
         const totalWeight = parseFloat(document.getElementById('totalWeight_b').value);
         if (bagsPerKg > 0 && !isNaN(totalWeight)) {
+            // 總量也建議無條件捨去比較保險，或是依一般數學邏輯
+            // 既然單公斤是捨去，總量 = 單公斤產量 * 公斤數，結果會是整數，但保險起見用 round
             const totalCount = Math.round(bagsPerKg * totalWeight);
             document.getElementById('finalTotalBags').innerText = totalCount;
         } else {
@@ -466,11 +497,65 @@
 
     function clearFormB() {
         document.getElementById('width_b').value = '';
+        document.getElementById('gusset1_b').value = '';
+        document.getElementById('gusset2_b').value = '';
         document.getElementById('length_b').value = '';
         document.getElementById('thickness_b').value = '';
         document.getElementById('totalWeight_b').value = '';
         document.getElementById('resultArea_b').style.display = 'none';
+        document.getElementById('btnSave_b').style.display = 'none';
         bagsPerKg = 0;
+        currentResultB = null;
+    }
+
+    // ----------------------
+    // 袋數記憶功能 (LocalStorage: calcHistoryB)
+    // ----------------------
+    function saveCalculationB() {
+        if (currentResultB === null) return;
+        const totalW = document.getElementById('totalWeight_b').value;
+        
+        // 如果有填寫總重量，紀錄中也顯示總量資訊
+        let detailsToSave = currentDetailsB;
+        let resultToSave = `${currentResultB} 個/kg`;
+        
+        if(totalW && !isNaN(totalW)) {
+            const totalCount = Math.round(bagsPerKg * parseFloat(totalW));
+            detailsToSave += `<br>總重: ${totalW}kg ➔ 總數: ${totalCount}個`;
+        }
+
+        const record = { id: Date.now(), result: resultToSave, details: detailsToSave };
+        let history = JSON.parse(localStorage.getItem('calcHistoryB')) || [];
+        history.unshift(record);
+        localStorage.setItem('calcHistoryB', JSON.stringify(history));
+        renderHistoryB();
+    }
+
+    function deleteHistoryItemB(id) {
+        let history = JSON.parse(localStorage.getItem('calcHistoryB')) || [];
+        history = history.filter(item => item.id !== id);
+        localStorage.setItem('calcHistoryB', JSON.stringify(history));
+        renderHistoryB();
+    }
+
+    function loadHistoryB() { renderHistoryB(); }
+
+    function renderHistoryB() {
+        const history = JSON.parse(localStorage.getItem('calcHistoryB')) || [];
+        const listEl = document.getElementById('historyList_b');
+        const sectionEl = document.getElementById('historySection_b');
+        listEl.innerHTML = '';
+        if (history.length > 0) {
+            sectionEl.style.display = 'block';
+            history.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'history-item';
+                li.innerHTML = `<div class="history-info"><strong>${item.result}</strong><br>${item.details}</div><button class="btn-delete-item" onclick="deleteHistoryItemB(${item.id})">刪除</button>`;
+                listEl.appendChild(li);
+            });
+        } else {
+            sectionEl.style.display = 'none';
+        }
     }
 
     // PWA Service Worker Registration
