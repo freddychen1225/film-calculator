@@ -103,6 +103,7 @@
             font-size: 0.95rem;
         }
 
+        /* 樣式：給單純輸入框用的 */
         .input-suffix {
             position: absolute;
             right: 15px;
@@ -117,8 +118,10 @@
             width: 100%;
         }
 
+        /* 樣式：給有下拉選單用的群組 */
         .input-group { display: flex; gap: 10px; }
         .input-group input { flex: 2; }
+        .input-group select { flex: 1; min-width: 80px; }
 
         input[type="number"], select {
             width: 100%;
@@ -213,19 +216,27 @@
             </div>
         </div>
 
+        <!-- 修正：這裡改回 input-group 並加入下拉選單 -->
         <div class="form-group">
-            <label>3. 膜厚 (mm)</label>
-            <div class="input-wrapper">
+            <label>3. 膜厚</label>
+            <div class="input-group">
                 <input type="number" inputmode="decimal" id="thickness_m" placeholder="輸入數值" step="any">
-                <span class="input-suffix">mm</span>
+                <select id="thicknessUnit_m">
+                    <option value="mm">mm</option>
+                    <option value="um">µm</option>
+                </select>
             </div>
         </div>
 
+        <!-- 修正：這裡改回 input-group 並加入下拉選單 -->
         <div class="form-group">
-            <label>4. 寬度 (cm)</label>
-            <div class="input-wrapper">
+            <label>4. 寬度</label>
+            <div class="input-group">
                 <input type="number" inputmode="decimal" id="width_m" placeholder="輸入數值" step="any">
-                <span class="input-suffix">cm</span>
+                <select id="widthUnit_m">
+                    <option value="cm">cm</option>
+                    <option value="mm">mm</option>
+                </select>
             </div>
         </div>
 
@@ -253,7 +264,7 @@
         </div>
     </div>
 
-    <!-- TAB 2: 袋數計算 -->
+    <!-- TAB 2: 袋數計算 (維持不變) -->
     <div id="tab2" class="tab-content">
         <h2>袋數換算</h2>
         <div class="form-group">
@@ -357,8 +368,13 @@
         const densityText = document.getElementById('material_m').options[document.getElementById('material_m').selectedIndex].text;
         const layerMultiplier = parseInt(document.querySelector('input[name="layer_m"]:checked').value);
         const layerText = layerMultiplier === 1 ? "單層" : "雙層";
+        
         let thickness = parseFloat(document.getElementById('thickness_m').value);
+        const thicknessUnit = document.getElementById('thicknessUnit_m').value;
+        
         let width = parseFloat(document.getElementById('width_m').value);
+        const widthUnit = document.getElementById('widthUnit_m').value;
+        
         const weight = parseFloat(document.getElementById('weight_m').value);
 
         if (isNaN(thickness) || isNaN(width) || isNaN(weight) || thickness <= 0 || width <= 0 || weight <= 0) {
@@ -366,8 +382,16 @@
             return;
         }
 
-        let width_m = width / 100;
-        let denominator = width_m * thickness * density * layerMultiplier;
+        // 單位換算邏輯加回來了
+        let thickness_mm = (thicknessUnit === 'um') ? thickness / 1000 : thickness;
+        let width_m = 0;
+        if (widthUnit === 'cm') {
+            width_m = width / 100;
+        } else {
+            width_m = width / 1000;
+        }
+
+        let denominator = width_m * thickness_mm * density * layerMultiplier;
         let length = weight / denominator;
         const finalResult = Math.round(length * 100) / 100;
 
@@ -376,7 +400,7 @@
         document.getElementById('btnSave_m').style.display = 'block';
 
         currentResultM = finalResult;
-        currentDetailsM = `材質: ${densityText.split(' ')[0]} | ${layerText}<br>規格: ${width}cm x ${thickness}mm | ${weight}kg`;
+        currentDetailsM = `材質: ${densityText.split(' ')[0]} | ${layerText}<br>規格: ${width}${widthUnit} x ${thickness}${thicknessUnit} | ${weight}kg`;
     }
 
     function clearFormM() {
@@ -423,6 +447,7 @@
         }
     }
 
+    // --- 袋數計算部分 (維持不變) ---
     let bagsPerKg = 0;
     let currentResultB = null;
     let currentDetailsB = null;
