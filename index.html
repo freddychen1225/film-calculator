@@ -4,15 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#007bff">
-    <title>燈冠米數計算機</title>
-    <!-- PWA Manifest -->
+    <title>燈冠計算機</title>
     <link rel="manifest" href="manifest.json">
-    <!-- 建議放置 icon.png 在同目錄，作為 favicon -->
     <link rel="icon" type="image/png" href="icon.png"> 
     
     <style>
         :root {
             --primary-color: #007bff;
+            --secondary-color: #6c757d;
             --danger-color: #dc3545;
             --warning-color: #ffc107;
             --bg-color: #f4f4f9;
@@ -26,7 +25,7 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             justify-content: center;
             align-items: flex-start;
@@ -36,19 +35,63 @@
 
         .container {
             background-color: var(--container-bg);
-            padding: 25px;
+            padding: 20px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             width: 100%;
             max-width: 500px;
-            margin-bottom: 20px; /* 增加底部空間 */
+            margin-bottom: 20px;
         }
 
-        h1 {
-            text-align: center;
+        /* 頁籤樣式 (Tabs) */
+        .tabs {
+            display: flex;
             margin-bottom: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--primary-color);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background-color: #fff;
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            outline: none;
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 15px;
             color: #2c3e50;
-            font-size: 1.6rem;
+            font-size: 1.4rem;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
         }
 
         .form-group { margin-bottom: 15px; }
@@ -59,6 +102,21 @@
             font-weight: 600;
             color: #444;
             font-size: 0.95rem;
+        }
+
+        /* 單位標籤樣式 */
+        .input-suffix {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+            pointer-events: none;
+        }
+        
+        .input-wrapper {
+            position: relative;
+            width: 100%;
         }
 
         .input-group { display: flex; gap: 10px; }
@@ -76,48 +134,22 @@
         }
 
         /* Radio Group */
-        .radio-group {
-            display: flex;
-            gap: 20px;
-            padding: 5px 0;
-        }
-        .radio-option {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-        }
-        .radio-option input {
-            margin-right: 8px;
-            width: 18px;
-            height: 18px;
-            accent-color: var(--primary-color);
-        }
+        .radio-group { display: flex; gap: 20px; padding: 5px 0; }
+        .radio-option { display: flex; align-items: center; cursor: pointer; }
+        .radio-option input { margin-right: 8px; width: 18px; height: 18px; accent-color: var(--primary-color); }
 
-        /* Buttons Area */
-        .btn-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
+        /* Buttons */
+        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
         button {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
+            width: 100%; padding: 14px; border: none; border-radius: 8px;
+            font-size: 16px; font-weight: bold; cursor: pointer; color: white;
             transition: opacity 0.2s;
-            color: white;
         }
-
         button:active { transform: scale(0.98); }
-
         .btn-calc { background-color: var(--primary-color); font-size: 18px; }
         .btn-clear { background-color: var(--danger-color); }
         .btn-save { background-color: var(--warning-color); color: #333; }
+        .btn-sub-calc { background-color: #28a745; margin-top: 10px; }
 
         /* Result Area */
         .result-box {
@@ -128,136 +160,169 @@
             text-align: center;
             border: 1px solid #b8daff;
         }
+        .result-title { font-size: 0.9rem; color: #666; margin-bottom: 5px; }
         .result-value { font-size: 2.2rem; font-weight: bold; color: var(--primary-color); }
         .result-unit { font-size: 1rem; color: #555; }
 
-        /* History Area */
-        .history-section {
-            margin-top: 30px;
-            border-top: 2px dashed #eee;
-            padding-top: 20px;
+        /* Secondary Calculation Area (Total Bags) */
+        .secondary-calc-box {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px dashed #b8daff;
         }
-        .history-title {
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #555;
-        }
-        .history-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
+
+        /* History */
+        .history-section { margin-top: 30px; border-top: 2px dashed #eee; padding-top: 20px; }
+        .history-title { font-weight: bold; margin-bottom: 10px; color: #555; }
+        .history-list { list-style: none; padding: 0; margin: 0; }
         .history-item {
-            background: #fff;
-            border: 1px solid #eee;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: #fff; border: 1px solid #eee; padding: 12px;
+            border-radius: 8px; margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
         .history-info { font-size: 0.85rem; color: #555; line-height: 1.4; }
         .history-info strong { color: var(--primary-color); font-size: 1rem; }
-        .btn-delete-item {
-            background-color: #ff6b6b;
-            width: auto;
-            padding: 5px 12px;
-            font-size: 12px;
-            margin-left: 10px;
-        }
+        .btn-delete-item { background-color: #ff6b6b; width: auto; padding: 5px 12px; font-size: 12px; margin-left: 10px; }
 
-        /* Footer Style Update */
         footer {
-            margin-top: 40px;
-            text-align: center;
-            font-size: 1.1rem; /* 字體放大 */
-            font-weight: 500;
-            color: #555; /* 顏色加深一點，更清晰 */
-            padding-bottom: 10px;
-            line-height: 1.5;
+            margin-top: 40px; text-align: center; font-size: 1.1rem;
+            font-weight: 500; color: #555; padding-bottom: 10px; line-height: 1.5;
         }
-        footer a { 
-            color: var(--primary-color); 
-            text-decoration: none;
-            font-weight: bold;
-        }
+        footer a { color: var(--primary-color); text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>燈冠米數計算機</h1>
-
-    <!-- Inputs -->
-    <div class="form-group">
-        <label>1. 材質</label>
-        <select id="material">
-            <option value="0.92">PE/LDPE (0.92)</option>
-            <option value="0.95">HDPE (0.95)</option>
-            <option value="1.24">PLA (1.24)</option>
-            <option value="1.3">生物可分解 (1.3)</option>
-            <option value="1.1">黑白膜 (1.1)</option>
-        </select>
+    <!-- 頁籤導航 -->
+    <div class="tabs">
+        <div class="tab-btn active" onclick="switchTab('tab1')">米數計算機</div>
+        <div class="tab-btn" onclick="switchTab('tab2')">袋數計算機</div>
     </div>
 
-    <div class="form-group">
-        <label>2. 膜層類型</label>
-        <div class="radio-group">
-            <label class="radio-option">
-                <input type="radio" name="layer" value="1" checked> 單層
-            </label>
-            <label class="radio-option">
-                <input type="radio" name="layer" value="2"> 雙層
-            </label>
-        </div>
-    </div>
-
-    <div class="form-group">
-        <label>3. 膜厚</label>
-        <div class="input-group">
-            <input type="number" id="thickness" placeholder="厚度" step="any">
-            <select id="thicknessUnit">
-                <option value="mm">mm</option>
-                <option value="um">µm</option>
+    <!-- TAB 1: 米數計算 -->
+    <div id="tab1" class="tab-content active">
+        <h2>米數換算</h2>
+        <div class="form-group">
+            <label>1. 材質</label>
+            <select id="material_m">
+                <option value="0.92">PE/LDPE (0.92)</option>
+                <option value="0.95">HDPE (0.95)</option>
+                <option value="1.24">PLA (1.24)</option>
+                <option value="1.3">生物可分解 (1.3)</option>
+                <option value="1.1">黑白膜 (1.1)</option>
             </select>
         </div>
+
+        <div class="form-group">
+            <label>2. 膜層類型</label>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="layer_m" value="1" checked> 單層</label>
+                <label class="radio-option"><input type="radio" name="layer_m" value="2"> 雙層</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>3. 膜厚 (mm)</label>
+            <div class="input-wrapper">
+                <input type="number" id="thickness_m" placeholder="輸入數值" step="any">
+                <span class="input-suffix">mm</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>4. 寬度 (cm)</label>
+            <div class="input-wrapper">
+                <input type="number" id="width_m" placeholder="輸入數值" step="any">
+                <span class="input-suffix">cm</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>5. 重量 (kg)</label>
+            <div class="input-wrapper">
+                <input type="number" id="weight_m" placeholder="輸入數值" step="any">
+                <span class="input-suffix">kg</span>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-calc" onclick="calculateMeters()">計算米數</button>
+            <div class="result-box" id="resultArea_m" style="display: none;">
+                <div class="result-title">總長度</div>
+                <span class="result-value" id="resultValue_m">0</span> <span class="result-unit">m</span>
+            </div>
+            <button class="btn-clear" onclick="clearFormM()">清空計算</button>
+            <button class="btn-save" id="btnSave_m" onclick="saveCalculationM()" style="display: none;">記憶此計算</button>
+        </div>
+
+        <div class="history-section" id="historySection_m" style="display: none;">
+            <div class="history-title">米數計算紀錄</div>
+            <ul class="history-list" id="historyList_m"></ul>
+        </div>
     </div>
 
-    <div class="form-group">
-        <label>4. 寬度</label>
-        <div class="input-group">
-            <input type="number" id="width" placeholder="寬度" step="any">
-            <select id="widthUnit">
-                <option value="cm">cm</option>
-                <option value="mm">mm</option>
+    <!-- TAB 2: 袋數計算 -->
+    <div id="tab2" class="tab-content">
+        <h2>袋數換算</h2>
+        <div class="form-group">
+            <label>1. 寬度 (cm)</label>
+            <div class="input-wrapper">
+                <input type="number" id="width_b" placeholder="輸入數值" step="any">
+                <span class="input-suffix">cm</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>2. 長度 (cm)</label>
+            <div class="input-wrapper">
+                <input type="number" id="length_b" placeholder="輸入數值" step="any">
+                <span class="input-suffix">cm</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>3. 厚度 (mm)</label>
+            <div class="input-wrapper">
+                <input type="number" id="thickness_b" placeholder="輸入數值" step="any">
+                <span class="input-suffix">mm</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>4. 材質常用係數</label>
+            <select id="coeff_b">
+                <option value="0.1854">LDPE (0.1854)</option>
+                <option value="0.1854">LLDPE (0.1854)</option>
+                <option value="0.191">HDPE (0.191)</option>
             </select>
         </div>
-    </div>
 
-    <div class="form-group">
-        <label>5. 重量 (kg)</label>
-        <input type="number" id="weight" placeholder="重量" step="any">
-    </div>
+        <div class="btn-group">
+            <button class="btn-calc" onclick="calculateBags()">計算袋數</button>
+            
+            <div class="result-box" id="resultArea_b" style="display: none;">
+                <div class="result-title">每公斤約可產生</div>
+                <span class="result-value" id="resultValue_b">0</span> <span class="result-unit">個</span>
+                
+                <!-- 延伸計算：總重量 -->
+                <div class="secondary-calc-box">
+                    <label style="font-size: 0.9rem; color: #444; margin-bottom: 8px;">輸入欲生產重量 (kg)：</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="totalWeight_b" placeholder="輸入數值" oninput="calculateTotalBags()" style="text-align: center;">
+                        <span class="input-suffix">kg</span>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <span style="font-size: 0.9rem; color: #666;">總共可產生：</span><br>
+                        <span style="font-size: 1.8rem; font-weight: bold; color: #28a745;" id="finalTotalBags">0</span>
+                        <span style="font-size: 1rem; color: #555;">個</span>
+                    </div>
+                </div>
+            </div>
 
-    <!-- Buttons -->
-    <div class="btn-group">
-        <button class="btn-calc" onclick="calculate()">計算米數</button>
-        <div class="result-box" id="resultArea" style="display: none;">
-            <span class="result-value" id="resultValue">0</span> <span class="result-unit">m</span>
+            <button class="btn-clear" onclick="clearFormB()">清空計算</button>
         </div>
-        
-        <button class="btn-clear" onclick="clearForm()">清空計算</button>
-        <button class="btn-save" id="btnSave" onclick="saveCalculation()" style="display: none;">記憶此計算</button>
-    </div>
-
-    <!-- History -->
-    <div class="history-section" id="historySection" style="display: none;">
-        <div class="history-title">計算紀錄</div>
-        <ul class="history-list" id="historyList">
-            <!-- Items will be injected here -->
-        </ul>
     </div>
 
     <footer>
@@ -266,117 +331,146 @@
 </div>
 
 <script>
-    // 頁面載入時讀取歷史紀錄
-    document.addEventListener('DOMContentLoaded', loadHistory);
+    // Tab 切換邏輯
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.querySelector(`.tab-btn[onclick="switchTab('${tabId}')"]`).classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+    }
 
-    let currentResult = null;
-    let currentDetails = null;
+    // ==========================================
+    // TAB 1: 米數計算邏輯
+    // ==========================================
+    document.addEventListener('DOMContentLoaded', loadHistoryM);
+    let currentResultM = null;
+    let currentDetailsM = null;
 
-    function calculate() {
-        const density = parseFloat(document.getElementById('material').value);
-        const densityText = document.getElementById('material').options[document.getElementById('material').selectedIndex].text;
-        const layerMultiplier = parseInt(document.querySelector('input[name="layer"]:checked').value);
+    function calculateMeters() {
+        const density = parseFloat(document.getElementById('material_m').value);
+        const densityText = document.getElementById('material_m').options[document.getElementById('material_m').selectedIndex].text;
+        const layerMultiplier = parseInt(document.querySelector('input[name="layer_m"]:checked').value);
         const layerText = layerMultiplier === 1 ? "單層" : "雙層";
         
-        let thickness = parseFloat(document.getElementById('thickness').value);
-        const thicknessUnit = document.getElementById('thicknessUnit').value;
+        // 單位直接為 mm
+        let thickness = parseFloat(document.getElementById('thickness_m').value);
         
-        let width = parseFloat(document.getElementById('width').value);
-        const widthUnit = document.getElementById('widthUnit').value;
+        // 單位直接為 cm
+        let width = parseFloat(document.getElementById('width_m').value);
         
-        const weight = parseFloat(document.getElementById('weight').value);
+        const weight = parseFloat(document.getElementById('weight_m').value);
 
         if (isNaN(thickness) || isNaN(width) || isNaN(weight) || thickness <= 0 || width <= 0 || weight <= 0) {
             alert("請輸入正確的數值！");
             return;
         }
 
-        // 單位換算
-        let thickness_mm = (thicknessUnit === 'um') ? thickness / 1000 : thickness;
-        let width_m = 0;
-        if (widthUnit === 'cm') width_m = width / 100;
-        else width_m = width / 1000;
+        // 米數公式需要: 寬(m) * 厚(mm) * 密度
+        // 寬度輸入是 cm，轉為 m (除以 100)
+        let width_m = width / 100;
 
-        // 計算
-        let denominator = width_m * thickness_mm * density * layerMultiplier;
+        let denominator = width_m * thickness * density * layerMultiplier;
         let length = weight / denominator;
         const finalResult = Math.round(length * 100) / 100;
 
-        // 顯示結果
-        document.getElementById('resultValue').innerText = finalResult;
-        document.getElementById('resultArea').style.display = 'block';
-        document.getElementById('btnSave').style.display = 'block'; // 顯示記憶按鈕
+        document.getElementById('resultValue_m').innerText = finalResult;
+        document.getElementById('resultArea_m').style.display = 'block';
+        document.getElementById('btnSave_m').style.display = 'block';
 
-        // 暫存資料供記憶使用
-        currentResult = finalResult;
-        currentDetails = `材質: ${densityText.split(' ')[0]} | ${layerText}<br>
-                          規格: ${width}${widthUnit} x ${thickness}${thicknessUnit}<br>
-                          重量: ${weight}kg`;
+        currentResultM = finalResult;
+        currentDetailsM = `材質: ${densityText.split(' ')[0]} | ${layerText}<br>規格: ${width}cm x ${thickness}mm | ${weight}kg`;
     }
 
-    function clearForm() {
-        document.getElementById('thickness').value = '';
-        document.getElementById('width').value = '';
-        document.getElementById('weight').value = '';
-        document.getElementById('resultArea').style.display = 'none';
-        document.getElementById('btnSave').style.display = 'none';
-        currentResult = null;
-        currentDetails = null;
+    function clearFormM() {
+        document.getElementById('thickness_m').value = '';
+        document.getElementById('width_m').value = '';
+        document.getElementById('weight_m').value = '';
+        document.getElementById('resultArea_m').style.display = 'none';
+        document.getElementById('btnSave_m').style.display = 'none';
     }
 
-    function saveCalculation() {
-        if (currentResult === null) return;
-
-        const record = {
-            id: Date.now(),
-            result: currentResult,
-            details: currentDetails,
-            timestamp: new Date().toLocaleString()
-        };
-
-        // 存入 LocalStorage
-        let history = JSON.parse(localStorage.getItem('calcHistory')) || [];
-        history.unshift(record); // 加到最前面
-        localStorage.setItem('calcHistory', JSON.stringify(history));
-
-        renderHistory();
+    function saveCalculationM() {
+        if (currentResultM === null) return;
+        const record = { id: Date.now(), result: currentResultM, details: currentDetailsM };
+        let history = JSON.parse(localStorage.getItem('calcHistoryM')) || [];
+        history.unshift(record);
+        localStorage.setItem('calcHistoryM', JSON.stringify(history));
+        renderHistoryM();
     }
 
-    function deleteHistoryItem(id) {
-        let history = JSON.parse(localStorage.getItem('calcHistory')) || [];
+    function deleteHistoryItemM(id) {
+        let history = JSON.parse(localStorage.getItem('calcHistoryM')) || [];
         history = history.filter(item => item.id !== id);
-        localStorage.setItem('calcHistory', JSON.stringify(history));
-        renderHistory();
+        localStorage.setItem('calcHistoryM', JSON.stringify(history));
+        renderHistoryM();
     }
 
-    function loadHistory() {
-        renderHistory();
-    }
+    function loadHistoryM() { renderHistoryM(); }
 
-    function renderHistory() {
-        const history = JSON.parse(localStorage.getItem('calcHistory')) || [];
-        const listEl = document.getElementById('historyList');
-        const sectionEl = document.getElementById('historySection');
-
+    function renderHistoryM() {
+        const history = JSON.parse(localStorage.getItem('calcHistoryM')) || [];
+        const listEl = document.getElementById('historyList_m');
+        const sectionEl = document.getElementById('historySection_m');
         listEl.innerHTML = '';
-
         if (history.length > 0) {
             sectionEl.style.display = 'block';
             history.forEach(item => {
                 const li = document.createElement('li');
                 li.className = 'history-item';
-                li.innerHTML = `
-                    <div class="history-info">
-                        <strong>${item.result} m</strong><br>
-                        ${item.details}
-                    </div>
-                    <button class="btn-delete-item" onclick="deleteHistoryItem(${item.id})">刪除</button>
-                `;
+                li.innerHTML = `<div class="history-info"><strong>${item.result} m</strong><br>${item.details}</div><button class="btn-delete-item" onclick="deleteHistoryItemM(${item.id})">刪除</button>`;
                 listEl.appendChild(li);
             });
         } else {
             sectionEl.style.display = 'none';
         }
+    }
+
+    // ==========================================
+    // TAB 2: 袋數計算邏輯
+    // ==========================================
+    let bagsPerKg = 0;
+
+    function calculateBags() {
+        // 輸入皆為固定單位: 寬cm, 長cm, 厚mm
+        let width = parseFloat(document.getElementById('width_b').value);
+        let length = parseFloat(document.getElementById('length_b').value);
+        let thickness = parseFloat(document.getElementById('thickness_b').value);
+        const coeff = parseFloat(document.getElementById('coeff_b').value);
+
+        if (isNaN(width) || isNaN(length) || isNaN(thickness) || width <= 0 || length <= 0 || thickness <= 0) {
+            alert("請填寫所有規格數值！");
+            return;
+        }
+
+        // 公式: 1000 / (寬cm * 長cm * 厚mm * 係數)
+        let star = width * length * thickness * coeff;
+        let result = 1000 / star;
+        
+        bagsPerKg = Math.round(result);
+
+        document.getElementById('resultValue_b').innerText = bagsPerKg;
+        document.getElementById('resultArea_b').style.display = 'block';
+        
+        calculateTotalBags(); // 若已有總重，自動重算
+    }
+
+    function calculateTotalBags() {
+        const totalWeight = parseFloat(document.getElementById('totalWeight_b').value);
+        if (bagsPerKg > 0 && !isNaN(totalWeight)) {
+            const totalCount = Math.round(bagsPerKg * totalWeight);
+            document.getElementById('finalTotalBags').innerText = totalCount;
+        } else {
+            document.getElementById('finalTotalBags').innerText = "0";
+        }
+    }
+
+    function clearFormB() {
+        document.getElementById('width_b').value = '';
+        document.getElementById('length_b').value = '';
+        document.getElementById('thickness_b').value = '';
+        document.getElementById('totalWeight_b').value = '';
+        document.getElementById('resultArea_b').style.display = 'none';
+        bagsPerKg = 0;
     }
 
     // PWA Service Worker Registration

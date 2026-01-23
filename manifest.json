@@ -1,6 +1,6 @@
 {
-  "name": "燈冠米數計算機",
-  "short_name": "米數計算",
+  "name": "燈冠計算機",
+  "short_name": "燈冠計算機",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f4f4f9",
@@ -18,3 +18,4 @@
     }
   ]
 }
+
