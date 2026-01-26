@@ -53,16 +53,21 @@
 
         .tab-btn {
             flex: 1;
-            padding: 15px;
+            padding: 12px 5px; /* 稍微縮小內距以容納三個按鈕 */
             text-align: center;
             background-color: #fff;
             color: var(--primary-color);
             font-weight: bold;
-            font-size: 1.1rem;
+            font-size: 1rem; /* 字體稍微縮小 */
             cursor: pointer;
             transition: all 0.3s;
             border: none;
             outline: none;
+            border-right: 1px solid #eee;
+        }
+        
+        .tab-btn:last-child {
+            border-right: none;
         }
 
         .tab-btn.active {
@@ -190,6 +195,7 @@
     <div class="tabs">
         <div class="tab-btn active" onclick="switchTab('tab1')">米數計算機</div>
         <div class="tab-btn" onclick="switchTab('tab2')">袋數計算機</div>
+        <div class="tab-btn" onclick="switchTab('tab3')">膜重計算機</div>
     </div>
 
     <!-- TAB 1: 米數計算 -->
@@ -205,7 +211,6 @@
                 <option value="1.1">黑白膜 (1.1)</option>
             </select>
         </div>
-
         <div class="form-group">
             <label>2. 膜層類型</label>
             <div class="radio-group">
@@ -213,7 +218,6 @@
                 <label class="radio-option"><input type="radio" name="layer_m" value="2"> 雙層</label>
             </div>
         </div>
-
         <div class="form-group">
             <label>3. 膜厚</label>
             <div class="input-group">
@@ -224,7 +228,6 @@
                 </select>
             </div>
         </div>
-
         <div class="form-group">
             <label>4. 寬度</label>
             <div class="input-group">
@@ -235,7 +238,6 @@
                 </select>
             </div>
         </div>
-
         <div class="form-group">
             <label>5. 重量 (kg)</label>
             <div class="input-wrapper">
@@ -253,7 +255,6 @@
             <button class="btn-clear" onclick="clearFormM()">清空計算</button>
             <button class="btn-save" id="btnSave_m" onclick="saveCalculationM()" style="display: none;">記憶此計算</button>
         </div>
-
         <div class="history-section" id="historySection_m" style="display: none;">
             <div class="history-title">米數計算紀錄</div>
             <ul class="history-list" id="historyList_m"></ul>
@@ -270,7 +271,6 @@
                 <span class="input-suffix">cm</span>
             </div>
         </div>
-
         <div class="form-group">
             <label>2. 折角 (cm)</label>
             <div class="input-wrapper">
@@ -281,7 +281,6 @@
                 對稱袋型 → 內部以「寬 + 折角 × 2」計算。
             </div>
         </div>
-
         <div class="form-group">
             <label>3. 長度 (cm)</label>
             <div class="input-wrapper">
@@ -289,7 +288,6 @@
                 <span class="input-suffix">cm</span>
             </div>
         </div>
-
         <div class="form-group">
             <label>4. 厚度 (mm)</label>
             <div class="input-wrapper">
@@ -297,7 +295,6 @@
                 <span class="input-suffix">mm</span>
             </div>
         </div>
-
         <div class="form-group">
             <label>5. 材質常用係數</label>
             <select id="coeff_b">
@@ -309,12 +306,11 @@
 
         <div class="btn-group">
             <button class="btn-calc" onclick="calculateBags()">計算袋數</button>
-            
             <div class="result-box" id="resultArea_b" style="display: none;">
                 <div class="result-title">每公斤約可產生</div>
                 <span class="result-value" id="resultValue_b">0</span> <span class="result-unit">個</span>
                 
-                <!-- 第一個延伸計算：公斤算總數 -->
+                <!-- 延伸計算1 -->
                 <div class="secondary-calc-box">
                     <label style="font-size: 0.9rem; color: #444; margin-bottom: 8px;">輸入欲生產重量 (kg)：</label>
                     <div class="input-wrapper">
@@ -327,8 +323,7 @@
                         <span style="font-size: 1rem; color: #555;">個</span>
                     </div>
                 </div>
-
-                <!-- 第二個延伸計算：數量反推重量 -->
+                <!-- 延伸計算2 -->
                 <div class="secondary-calc-box" style="margin-top: 20px; border-top: 2px dashed #ddd; padding-top: 15px;">
                     <label style="font-size: 0.9rem; color: #444; margin-bottom: 8px;">輸入客戶下單數量 (個)：</label>
                     <div class="input-wrapper">
@@ -342,14 +337,75 @@
                     </div>
                 </div>
             </div>
-
             <button class="btn-clear" onclick="clearFormB()">清空計算</button>
             <button class="btn-save" id="btnSave_b" onclick="saveCalculationB()" style="display: none;">記憶此計算</button>
         </div>
-
         <div class="history-section" id="historySection_b" style="display: none;">
             <div class="history-title">袋數計算紀錄</div>
             <ul class="history-list" id="historyList_b"></ul>
+        </div>
+    </div>
+
+    <!-- TAB 3: 膜重計算機 (新增) -->
+    <div id="tab3" class="tab-content">
+        <h2>膜重換算</h2>
+        <div class="form-group">
+            <label>1. 材質</label>
+            <select id="material_w">
+                <option value="0.92">PE/LDPE (0.92)</option>
+                <option value="0.95">HDPE (0.95)</option>
+                <option value="1.24">PLA (1.24)</option>
+                <option value="1.3">生物可分解 (1.3)</option>
+                <option value="1.1">黑白膜 (1.1)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>2. 膜層類型</label>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="layer_w" value="1" checked> 單層</label>
+                <label class="radio-option"><input type="radio" name="layer_w" value="2"> 雙層</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>3. 膜厚</label>
+            <div class="input-group">
+                <input type="number" inputmode="decimal" id="thickness_w" placeholder="輸入數值" step="any">
+                <select id="thicknessUnit_w">
+                    <option value="mm">mm</option>
+                    <option value="um">µm</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>4. 寬度</label>
+            <div class="input-group">
+                <input type="number" inputmode="decimal" id="width_w" placeholder="輸入數值" step="any">
+                <select id="widthUnit_w">
+                    <option value="cm">cm</option>
+                    <option value="mm">mm</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>5. 米數 (m)</label>
+            <div class="input-wrapper">
+                <input type="number" inputmode="decimal" id="length_w" placeholder="輸入數值" step="any">
+                <span class="input-suffix">m</span>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-calc" onclick="calculateWeight()">計算重量</button>
+            <div class="result-box" id="resultArea_w" style="display: none;">
+                <div class="result-title">計算重量</div>
+                <span class="result-value" id="resultValue_w">0</span> <span class="result-unit">kg</span>
+            </div>
+            <button class="btn-clear" onclick="clearFormW()">清空計算</button>
+            <button class="btn-save" id="btnSave_w" onclick="saveCalculationW()" style="display: none;">記憶此計算</button>
+        </div>
+        <div class="history-section" id="historySection_w" style="display: none;">
+            <div class="history-title">膜重計算紀錄</div>
+            <ul class="history-list" id="historyList_w"></ul>
         </div>
     </div>
 
@@ -369,9 +425,10 @@
     document.addEventListener('DOMContentLoaded', () => {
         loadHistoryM();
         loadHistoryB();
+        loadHistoryW();
     });
     
-    // 米數計算邏輯
+    // --- 1. 米數計算邏輯 ---
     let currentResultM = null;
     let currentDetailsM = null;
 
@@ -422,14 +479,12 @@
         localStorage.setItem('calcHistoryM', JSON.stringify(history));
         renderHistoryM();
     }
-
     function deleteHistoryItemM(id) {
         let history = JSON.parse(localStorage.getItem('calcHistoryM')) || [];
         history = history.filter(item => item.id !== id);
         localStorage.setItem('calcHistoryM', JSON.stringify(history));
         renderHistoryM();
     }
-
     function loadHistoryM() { renderHistoryM(); }
     function renderHistoryM() {
         const history = JSON.parse(localStorage.getItem('calcHistoryM')) || [];
@@ -449,7 +504,7 @@
         }
     }
 
-    // 袋數計算邏輯
+    // --- 2. 袋數計算邏輯 ---
     let bagsPerKg = 0;
     let currentResultB = null;
     let currentDetailsB = null;
@@ -470,21 +525,20 @@
         let totalWidth = width + gusset * 2;
         let star = totalWidth * length * thickness * coeff;
         let result = 1000 / star;
-        bagsPerKg = Math.floor(result); // 單公斤產量
+        bagsPerKg = Math.floor(result);
 
         document.getElementById('resultValue_b').innerText = bagsPerKg;
         document.getElementById('resultArea_b').style.display = 'block';
         document.getElementById('btnSave_b').style.display = 'block';
 
-        calculateTotalBagsFromWeight(); // 重算公斤->數量
-        calculateTotalWeightFromCount(); // 重算數量->公斤
+        calculateTotalBagsFromWeight();
+        calculateTotalWeightFromCount();
 
         let gussetText = gusset > 0 ? `+折${gusset}×2` : "";
         currentResultB = bagsPerKg;
         currentDetailsB = `材質: ${coeffText.split(' ')[0]}<br>規格: (${width}${gussetText})x${length}cm x ${thickness}mm`;
     }
 
-    // 公斤 -> 數量
     function calculateTotalBagsFromWeight() {
         const totalWeight = parseFloat(document.getElementById('totalWeight_b').value);
         if (bagsPerKg > 0 && !isNaN(totalWeight)) {
@@ -494,14 +548,10 @@
             document.getElementById('finalTotalBagsFromWeight').innerText = "0";
         }
     }
-
-    // 數量 -> 公斤 (新增邏輯)
     function calculateTotalWeightFromCount() {
         const totalCount = parseFloat(document.getElementById('totalCount_b').value);
         if (bagsPerKg > 0 && !isNaN(totalCount)) {
-            // 重量 = 數量 / 每公斤個數
             const neededWeight = totalCount / bagsPerKg;
-            // 顯示小數點後2位
             document.getElementById('finalTotalWeightFromCount').innerText = neededWeight.toFixed(2);
         } else {
             document.getElementById('finalTotalWeightFromCount').innerText = "0";
@@ -514,22 +564,18 @@
         document.getElementById('length_b').value = '';
         document.getElementById('thickness_b').value = '';
         document.getElementById('totalWeight_b').value = '';
-        document.getElementById('totalCount_b').value = ''; // 清除反算欄位
+        document.getElementById('totalCount_b').value = '';
         document.getElementById('resultArea_b').style.display = 'none';
         document.getElementById('btnSave_b').style.display = 'none';
         bagsPerKg = 0;
         currentResultB = null;
     }
-
     function saveCalculationB() {
         if (currentResultB === null) return;
         const totalW = document.getElementById('totalWeight_b').value;
         const totalC = document.getElementById('totalCount_b').value;
-        
         let detailsToSave = currentDetailsB;
         let resultToSave = `${currentResultB} 個/kg`;
-        
-        // 紀錄擴充：如果有填寫總重或總數量，也寫入紀錄
         if (totalW && !isNaN(totalW)) {
             const totalCount = Math.round(bagsPerKg * parseFloat(totalW));
             detailsToSave += `<br>計畫生產: ${totalW}kg ➔ ${totalCount}個`;
@@ -538,21 +584,18 @@
             const neededWeight = (parseFloat(totalC) / bagsPerKg).toFixed(2);
             detailsToSave += `<br>客戶訂單: ${totalC}個 ➔ ${neededWeight}kg`;
         }
-
         const record = { id: Date.now(), result: resultToSave, details: detailsToSave };
         let history = JSON.parse(localStorage.getItem('calcHistoryB')) || [];
         history.unshift(record);
         localStorage.setItem('calcHistoryB', JSON.stringify(history));
         renderHistoryB();
     }
-
     function deleteHistoryItemB(id) {
         let history = JSON.parse(localStorage.getItem('calcHistoryB')) || [];
         history = history.filter(item => item.id !== id);
         localStorage.setItem('calcHistoryB', JSON.stringify(history));
         renderHistoryB();
     }
-
     function loadHistoryB() { renderHistoryB(); }
     function renderHistoryB() {
         const history = JSON.parse(localStorage.getItem('calcHistoryB')) || [];
@@ -565,6 +608,87 @@
                 const li = document.createElement('li');
                 li.className = 'history-item';
                 li.innerHTML = `<div class="history-info"><strong>${item.result}</strong><br>${item.details}</div><button class="btn-delete-item" onclick="deleteHistoryItemB(${item.id})">刪除</button>`;
+                listEl.appendChild(li);
+            });
+        } else {
+            sectionEl.style.display = 'none';
+        }
+    }
+
+    // --- 3. 膜重計算邏輯 (新增) ---
+    let currentResultW = null;
+    let currentDetailsW = null;
+
+    function calculateWeight() {
+        const density = parseFloat(document.getElementById('material_w').value);
+        const densityText = document.getElementById('material_w').options[document.getElementById('material_w').selectedIndex].text;
+        const layerMultiplier = parseInt(document.querySelector('input[name="layer_w"]:checked').value);
+        const layerText = layerMultiplier === 1 ? "單層" : "雙層";
+        
+        let thickness = parseFloat(document.getElementById('thickness_w').value);
+        const thicknessUnit = document.getElementById('thicknessUnit_w').value;
+        
+        let width = parseFloat(document.getElementById('width_w').value);
+        const widthUnit = document.getElementById('widthUnit_w').value;
+        
+        const length = parseFloat(document.getElementById('length_w').value);
+
+        if (isNaN(thickness) || isNaN(width) || isNaN(length) || thickness <= 0 || width <= 0 || length <= 0) {
+            alert("請輸入正確的數值！");
+            return;
+        }
+
+        // 單位統一換算
+        let thickness_mm = (thicknessUnit === 'um') ? thickness / 1000 : thickness;
+        let width_m = (widthUnit === 'cm') ? width / 100 : width / 1000;
+
+        // 公式: 重量 = 長度m * 寬度m * 厚度mm * 密度 * 層數
+        let weight = length * width_m * thickness_mm * density * layerMultiplier;
+        
+        const finalResult = Math.round(weight * 100) / 100; // 保留兩位小數
+
+        document.getElementById('resultValue_w').innerText = finalResult;
+        document.getElementById('resultArea_w').style.display = 'block';
+        document.getElementById('btnSave_w').style.display = 'block';
+
+        currentResultW = finalResult;
+        currentDetailsW = `材質: ${densityText.split(' ')[0]} | ${layerText}<br>規格: ${width}${widthUnit} x ${thickness}${thicknessUnit} | ${length}m`;
+    }
+
+    function clearFormW() {
+        document.getElementById('thickness_w').value = '';
+        document.getElementById('width_w').value = '';
+        document.getElementById('length_w').value = '';
+        document.getElementById('resultArea_w').style.display = 'none';
+        document.getElementById('btnSave_w').style.display = 'none';
+    }
+
+    function saveCalculationW() {
+        if (currentResultW === null) return;
+        const record = { id: Date.now(), result: currentResultW, details: currentDetailsW };
+        let history = JSON.parse(localStorage.getItem('calcHistoryW')) || [];
+        history.unshift(record);
+        localStorage.setItem('calcHistoryW', JSON.stringify(history));
+        renderHistoryW();
+    }
+    function deleteHistoryItemW(id) {
+        let history = JSON.parse(localStorage.getItem('calcHistoryW')) || [];
+        history = history.filter(item => item.id !== id);
+        localStorage.setItem('calcHistoryW', JSON.stringify(history));
+        renderHistoryW();
+    }
+    function loadHistoryW() { renderHistoryW(); }
+    function renderHistoryW() {
+        const history = JSON.parse(localStorage.getItem('calcHistoryW')) || [];
+        const listEl = document.getElementById('historyList_w');
+        const sectionEl = document.getElementById('historySection_w');
+        listEl.innerHTML = '';
+        if (history.length > 0) {
+            sectionEl.style.display = 'block';
+            history.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'history-item';
+                li.innerHTML = `<div class="history-info"><strong>${item.result} kg</strong><br>${item.details}</div><button class="btn-delete-item" onclick="deleteHistoryItemW(${item.id})">刪除</button>`;
                 listEl.appendChild(li);
             });
         } else {
