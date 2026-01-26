@@ -103,7 +103,6 @@
             font-size: 0.95rem;
         }
 
-        /* 樣式：給單純輸入框用的 */
         .input-suffix {
             position: absolute;
             right: 15px;
@@ -118,7 +117,6 @@
             width: 100%;
         }
 
-        /* 樣式：給有下拉選單用的群組 */
         .input-group { display: flex; gap: 10px; }
         .input-group input { flex: 2; }
         .input-group select { flex: 1; min-width: 80px; }
@@ -216,7 +214,6 @@
             </div>
         </div>
 
-        <!-- 修正：這裡改回 input-group 並加入下拉選單 -->
         <div class="form-group">
             <label>3. 膜厚</label>
             <div class="input-group">
@@ -228,7 +225,6 @@
             </div>
         </div>
 
-        <!-- 修正：這裡改回 input-group 並加入下拉選單 -->
         <div class="form-group">
             <label>4. 寬度</label>
             <div class="input-group">
@@ -264,7 +260,7 @@
         </div>
     </div>
 
-    <!-- TAB 2: 袋數計算 (維持不變) -->
+    <!-- TAB 2: 袋數計算 -->
     <div id="tab2" class="tab-content">
         <h2>袋數換算</h2>
         <div class="form-group">
@@ -318,16 +314,31 @@
                 <div class="result-title">每公斤約可產生</div>
                 <span class="result-value" id="resultValue_b">0</span> <span class="result-unit">個</span>
                 
+                <!-- 第一個延伸計算：公斤算總數 -->
                 <div class="secondary-calc-box">
                     <label style="font-size: 0.9rem; color: #444; margin-bottom: 8px;">輸入欲生產重量 (kg)：</label>
                     <div class="input-wrapper">
-                        <input type="number" inputmode="decimal" id="totalWeight_b" placeholder="輸入數值" oninput="calculateTotalBags()" style="text-align: center;">
+                        <input type="number" inputmode="decimal" id="totalWeight_b" placeholder="輸入數值" oninput="calculateTotalBagsFromWeight()" style="text-align: center;">
                         <span class="input-suffix">kg</span>
                     </div>
                     <div style="margin-top: 10px;">
                         <span style="font-size: 0.9rem; color: #666;">總共可產生：</span><br>
-                        <span style="font-size: 1.8rem; font-weight: bold; color: #28a745;" id="finalTotalBags">0</span>
+                        <span style="font-size: 1.8rem; font-weight: bold; color: #28a745;" id="finalTotalBagsFromWeight">0</span>
                         <span style="font-size: 1rem; color: #555;">個</span>
+                    </div>
+                </div>
+
+                <!-- 第二個延伸計算：數量反推重量 -->
+                <div class="secondary-calc-box" style="margin-top: 20px; border-top: 2px dashed #ddd; padding-top: 15px;">
+                    <label style="font-size: 0.9rem; color: #444; margin-bottom: 8px;">輸入客戶下單數量 (個)：</label>
+                    <div class="input-wrapper">
+                        <input type="number" inputmode="decimal" id="totalCount_b" placeholder="輸入數值" oninput="calculateTotalWeightFromCount()" style="text-align: center;">
+                        <span class="input-suffix">個</span>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <span style="font-size: 0.9rem; color: #666;">需要膜料：</span><br>
+                        <span style="font-size: 1.8rem; font-weight: bold; color: #e83e8c;" id="finalTotalWeightFromCount">0</span>
+                        <span style="font-size: 1rem; color: #555;">kg</span>
                     </div>
                 </div>
             </div>
@@ -360,6 +371,7 @@
         loadHistoryB();
     });
     
+    // 米數計算邏輯
     let currentResultM = null;
     let currentDetailsM = null;
 
@@ -368,13 +380,10 @@
         const densityText = document.getElementById('material_m').options[document.getElementById('material_m').selectedIndex].text;
         const layerMultiplier = parseInt(document.querySelector('input[name="layer_m"]:checked').value);
         const layerText = layerMultiplier === 1 ? "單層" : "雙層";
-        
         let thickness = parseFloat(document.getElementById('thickness_m').value);
         const thicknessUnit = document.getElementById('thicknessUnit_m').value;
-        
         let width = parseFloat(document.getElementById('width_m').value);
         const widthUnit = document.getElementById('widthUnit_m').value;
-        
         const weight = parseFloat(document.getElementById('weight_m').value);
 
         if (isNaN(thickness) || isNaN(width) || isNaN(weight) || thickness <= 0 || width <= 0 || weight <= 0) {
@@ -382,14 +391,8 @@
             return;
         }
 
-        // 單位換算邏輯加回來了
         let thickness_mm = (thicknessUnit === 'um') ? thickness / 1000 : thickness;
-        let width_m = 0;
-        if (widthUnit === 'cm') {
-            width_m = width / 100;
-        } else {
-            width_m = width / 1000;
-        }
+        let width_m = (widthUnit === 'cm') ? width / 100 : width / 1000;
 
         let denominator = width_m * thickness_mm * density * layerMultiplier;
         let length = weight / denominator;
@@ -428,7 +431,6 @@
     }
 
     function loadHistoryM() { renderHistoryM(); }
-
     function renderHistoryM() {
         const history = JSON.parse(localStorage.getItem('calcHistoryM')) || [];
         const listEl = document.getElementById('historyList_m');
@@ -447,7 +449,7 @@
         }
     }
 
-    // --- 袋數計算部分 (維持不變) ---
+    // 袋數計算邏輯
     let bagsPerKg = 0;
     let currentResultB = null;
     let currentDetailsB = null;
@@ -468,26 +470,41 @@
         let totalWidth = width + gusset * 2;
         let star = totalWidth * length * thickness * coeff;
         let result = 1000 / star;
-        bagsPerKg = Math.floor(result);
+        bagsPerKg = Math.floor(result); // 單公斤產量
 
         document.getElementById('resultValue_b').innerText = bagsPerKg;
         document.getElementById('resultArea_b').style.display = 'block';
         document.getElementById('btnSave_b').style.display = 'block';
 
-        calculateTotalBags();
+        calculateTotalBagsFromWeight(); // 重算公斤->數量
+        calculateTotalWeightFromCount(); // 重算數量->公斤
 
         let gussetText = gusset > 0 ? `+折${gusset}×2` : "";
         currentResultB = bagsPerKg;
         currentDetailsB = `材質: ${coeffText.split(' ')[0]}<br>規格: (${width}${gussetText})x${length}cm x ${thickness}mm`;
     }
 
-    function calculateTotalBags() {
+    // 公斤 -> 數量
+    function calculateTotalBagsFromWeight() {
         const totalWeight = parseFloat(document.getElementById('totalWeight_b').value);
         if (bagsPerKg > 0 && !isNaN(totalWeight)) {
             const totalCount = Math.round(bagsPerKg * totalWeight);
-            document.getElementById('finalTotalBags').innerText = totalCount;
+            document.getElementById('finalTotalBagsFromWeight').innerText = totalCount;
         } else {
-            document.getElementById('finalTotalBags').innerText = "0";
+            document.getElementById('finalTotalBagsFromWeight').innerText = "0";
+        }
+    }
+
+    // 數量 -> 公斤 (新增邏輯)
+    function calculateTotalWeightFromCount() {
+        const totalCount = parseFloat(document.getElementById('totalCount_b').value);
+        if (bagsPerKg > 0 && !isNaN(totalCount)) {
+            // 重量 = 數量 / 每公斤個數
+            const neededWeight = totalCount / bagsPerKg;
+            // 顯示小數點後2位
+            document.getElementById('finalTotalWeightFromCount').innerText = neededWeight.toFixed(2);
+        } else {
+            document.getElementById('finalTotalWeightFromCount').innerText = "0";
         }
     }
 
@@ -497,6 +514,7 @@
         document.getElementById('length_b').value = '';
         document.getElementById('thickness_b').value = '';
         document.getElementById('totalWeight_b').value = '';
+        document.getElementById('totalCount_b').value = ''; // 清除反算欄位
         document.getElementById('resultArea_b').style.display = 'none';
         document.getElementById('btnSave_b').style.display = 'none';
         bagsPerKg = 0;
@@ -506,12 +524,21 @@
     function saveCalculationB() {
         if (currentResultB === null) return;
         const totalW = document.getElementById('totalWeight_b').value;
+        const totalC = document.getElementById('totalCount_b').value;
+        
         let detailsToSave = currentDetailsB;
         let resultToSave = `${currentResultB} 個/kg`;
+        
+        // 紀錄擴充：如果有填寫總重或總數量，也寫入紀錄
         if (totalW && !isNaN(totalW)) {
             const totalCount = Math.round(bagsPerKg * parseFloat(totalW));
-            detailsToSave += `<br>總重: ${totalW}kg ➔ 總數: ${totalCount}個`;
+            detailsToSave += `<br>計畫生產: ${totalW}kg ➔ ${totalCount}個`;
         }
+        if (totalC && !isNaN(totalC)) {
+            const neededWeight = (parseFloat(totalC) / bagsPerKg).toFixed(2);
+            detailsToSave += `<br>客戶訂單: ${totalC}個 ➔ ${neededWeight}kg`;
+        }
+
         const record = { id: Date.now(), result: resultToSave, details: detailsToSave };
         let history = JSON.parse(localStorage.getItem('calcHistoryB')) || [];
         history.unshift(record);
@@ -527,7 +554,6 @@
     }
 
     function loadHistoryB() { renderHistoryB(); }
-
     function renderHistoryB() {
         const history = JSON.parse(localStorage.getItem('calcHistoryB')) || [];
         const listEl = document.getElementById('historyList_b');
